@@ -74,3 +74,15 @@ The workflow at `.github/workflows/ci.yml`:
 - Lints & tests the Django backend with `uv`, `ruff`, and `pytest`
 - Lints & builds the React frontend
 - On pushes to `main`, builds the Docker image and publishes it to GitHub Container Registry (`ghcr.io/<owner>/inventory-app`)
+
+## Pre-commit hooks
+
+Install and run the formatting hooks locally:
+
+```bash
+uv tool install pre-commit  # or pip install pre-commit
+pre-commit install
+pre-commit run --all-files  # optional dry run
+```
+
+The hook stack runs `ruff --fix`/`ruff format` for Python files and `prettier` for the frontend code before each commit.

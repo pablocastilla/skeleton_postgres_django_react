@@ -4,6 +4,7 @@ import type { FormEvent } from 'react'
 import { createItem, deleteItem, fetchItems, updateItem } from './api'
 import './App.css'
 import type { InventoryItem, InventoryItemInput } from './types'
+import inventoryIcon from './assets/inventory-icon.svg'
 
 const emptyForm: InventoryItemInput = {
   name: '',
@@ -19,11 +20,46 @@ function App() {
   const [form, setForm] = useState<FormState>(emptyForm)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null)
 
   const sortedItems = useMemo(
     () => [...items].sort((a, b) => a.name.localeCompare(b.name)),
     [items],
   )
+
+  const totalQuantity = useMemo(
+    () => items.reduce((sum, item) => sum + item.quantity, 0),
+    [items],
+  )
+
+  const locationCount = useMemo(() => {
+    const unique = new Set(
+      items
+        .map((item) => item.location.trim())
+        .filter((location) => location.length > 0),
+    )
+    return unique.size
+  }, [items])
+
+  const lowStockItems = useMemo(
+    () => items.filter((item) => item.quantity <= 3),
+    [items],
+  )
+
+  const outOfStockCount = useMemo(
+    () => items.filter((item) => item.quantity === 0).length,
+    [items],
+  )
+
+  const lastSyncedLabel = useMemo(() => {
+    if (!lastSyncedAt) {
+      return null
+    }
+    return new Intl.DateTimeFormat(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(lastSyncedAt)
+  }, [lastSyncedAt])
 
   useEffect(() => {
     const load = async () => {
@@ -32,6 +68,7 @@ function App() {
       try {
         const data = await fetchItems()
         setItems(data)
+        setLastSyncedAt(new Date())
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch items')
       } finally {
@@ -73,6 +110,7 @@ function App() {
         })
         setItems((prev) => [...prev, created])
       }
+      setLastSyncedAt(new Date())
       resetForm()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save item')
@@ -87,6 +125,7 @@ function App() {
       if (form.id === id) {
         resetForm()
       }
+      setLastSyncedAt(new Date())
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete item')
     }
@@ -110,8 +149,69 @@ function App() {
   return (
     <div className="app-shell">
       <header>
-        <h1>Inventory</h1>
-        <p>Track availability and locations for your equipment in seconds.</p>
+        <div className="hero-card">
+          <div className="hero-content">
+            <img
+              src={inventoryIcon}
+              alt="Inventory dashboard icon"
+              className="hero-icon"
+            />
+            <p className="eyebrow">Inventory Control</p>
+            <h1>Inventory</h1>
+            <p>
+              Keep your team in sync with live availability, locations, and
+              quick edits.
+            </p>
+          </div>
+          <div className="hero-meta">
+            <div className={`sync-indicator ${loading ? 'syncing' : 'ready'}`}>
+              <span className="status-dot" aria-hidden="true" />
+              {loading ? 'Syncing with server...' : 'Live and ready'}
+            </div>
+            {lastSyncedLabel ? (
+              <p className="hero-subtext">Updated at {lastSyncedLabel}</p>
+            ) : (
+              <p className="hero-subtext">Fetch inventory to get started</p>
+            )}
+          </div>
+        </div>
+
+        <div className="summary-grid" aria-label="Inventory summary">
+          <article className="summary-card primary">
+            <p className="summary-label">Tracked items</p>
+            <p className="summary-value">{items.length}</p>
+            <p className="summary-hint">
+              {items.length
+                ? `Across ${locationCount || 1} active location${
+                    locationCount !== 1 ? 's' : ''
+                  }`
+                : 'Create a record to start tracking'}
+            </p>
+          </article>
+          <article className="summary-card">
+            <p className="summary-label">Total quantity</p>
+            <p className="summary-value">{totalQuantity}</p>
+            <p className="summary-hint">
+              {totalQuantity
+                ? 'Includes on-hand and reserved stock'
+                : 'No inventory recorded yet'}
+            </p>
+          </article>
+          <article className="summary-card attention">
+            <p className="summary-label">Low &amp; out of stock</p>
+            <p className="summary-value">
+              {lowStockItems.length}
+              <span className="summary-addon">
+                {!!outOfStockCount && `${outOfStockCount} out`}
+              </span>
+            </p>
+            <p className="summary-hint">
+              {lowStockItems.length
+                ? 'Restock soon to avoid shortages'
+                : 'Everything looks healthy'}
+            </p>
+          </article>
+        </div>
       </header>
 
       <main>
@@ -197,6 +297,32 @@ function App() {
               <span className="badge secondary">No items yet</span>
             ) : null}
           </div>
+
+          {lowStockItems.length ? (
+            <div className="callout">
+              <div>
+                <p className="callout-title">
+                  {lowStockItems.length} item
+                  {lowStockItems.length > 1 ? 's' : ''} running low
+                </p>
+                <p className="callout-text">
+                  Review quantities and plan a replenishment.
+                </p>
+              </div>
+              <div className="chip-group" aria-label="Low stock items">
+                {lowStockItems.slice(0, 3).map((item) => (
+                  <span key={item.id} className="chip warning">
+                    {item.name} qty {item.quantity}
+                  </span>
+                ))}
+                {lowStockItems.length > 3 ? (
+                  <span className="chip muted">
+                    +{lowStockItems.length - 3} more
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
 
           <table>
             <thead>
