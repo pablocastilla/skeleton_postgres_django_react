@@ -59,11 +59,19 @@ TEMPLATES = [
 WSGI_APPLICATION = "inventory_project.wsgi.application"
 
 
-def _default_sqlite_url() -> str:
+def _default_database_url() -> str:
+    if os.getenv("DJANGO_USE_LOCAL_POSTGRES", "1") == "1":
+        user = os.getenv("POSTGRES_USER", "inventory")
+        password = os.getenv("POSTGRES_PASSWORD", "inventory")
+        host = os.getenv("POSTGRES_HOST", "localhost")
+        port = os.getenv("POSTGRES_PORT", "5432")
+        name = os.getenv("POSTGRES_DB", "inventory")
+        return f"postgresql://{user}:{password}@{host}:{port}/{name}"
+
     return f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
 
 
-DATABASE_URL = os.getenv("DATABASE_URL", _default_sqlite_url())
+DATABASE_URL = os.getenv("DATABASE_URL", _default_database_url())
 
 DATABASES = {
     "default": dj_database_url.config(

@@ -13,15 +13,18 @@ Simple inventory management demo that pairs a Django REST backend (managed by [u
 ```bash
 cd backend
 uv sync --group dev --group test
+docker compose up -d postgres  # starts local Postgres (defined in docker-compose.yml)
 uv run python src/manage.py migrate
 uv run python src/manage.py runserver
 ```
 
 Environment variables (copy `backend/.env.example` to `.env`):
 
-- `DATABASE_URL` (defaults to SQLite when omitted)
+- `DATABASE_URL` (defaults to the docker-compose Postgres connection when omitted)
 - `DJANGO_ALLOWED_HOSTS`
 - `DJANGO_CORS_ALLOWED_ORIGINS`
+- `POSTGRES_*` (optional overrides for the docker-compose Postgres service)
+- `DJANGO_USE_LOCAL_POSTGRES` (set to `0` to fall back to SQLite)
 
 ### Tests & linting
 
