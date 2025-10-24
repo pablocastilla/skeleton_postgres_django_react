@@ -22,15 +22,26 @@ from django.views.static import serve as static_serve
 import os
 from django.conf import settings
 
+
+# Helper function to serve files from dist directory
+def serve_from_dist(request, path):
+    try:
+        print(
+            f"Serving file: {path} from {os.path.join(settings.BASE_DIR, 'src', 'static', 'dist')}"
+        )
+        return static_serve(
+            request,
+            path=path,
+            document_root=os.path.join(settings.BASE_DIR, "src", "static", "dist"),
+        )
+    except Exception as e:
+        print(f"Error serving {path}: {str(e)}")
+        raise
+
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("inventory.urls")),
-    path(
-        "",
-        lambda request: static_serve(
-            request,
-            path="index.html",
-            document_root=os.path.join(settings.BASE_DIR, "static", "dist"),
-        ),
-    ),
 ]
+
+# En producción, WhiteNoise servirá los archivos estáticos incluyendo index.html
