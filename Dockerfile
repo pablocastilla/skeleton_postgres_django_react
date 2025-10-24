@@ -14,7 +14,8 @@ ENV UV_PROJECT_ENVIRONMENT=/app/.venv \
     PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=inventory_project.settings \
     DJANGO_DEBUG=0 \
-    DJANGO_ALLOWED_HOSTS=*
+    DJANGO_ALLOWED_HOSTS=* \
+    DJANGO_USE_LOCAL_POSTGRES=1
 
 COPY backend/pyproject.toml backend/uv.lock ./
 RUN uv sync --frozen --no-install-project
