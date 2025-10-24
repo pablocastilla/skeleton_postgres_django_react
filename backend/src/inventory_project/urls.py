@@ -17,8 +17,10 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+from django.contrib.staticfiles.views import serve
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("inventory.urls")),
+    path("", serve, kwargs={"path": "dist/index.html"}),
 ]
