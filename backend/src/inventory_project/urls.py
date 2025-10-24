@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from django.views.static import serve as static_serve
+import os
 from django.conf import settings
 
 urlpatterns = [
@@ -27,7 +28,9 @@ urlpatterns = [
     path(
         "",
         lambda request: static_serve(
-            request, path="dist/index.html", document_root=settings.STATIC_ROOT
+            request,
+            path="index.html",
+            document_root=os.path.join(settings.BASE_DIR, "static", "dist"),
         ),
     ),
 ]
