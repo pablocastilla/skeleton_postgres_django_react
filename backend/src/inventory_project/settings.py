@@ -128,11 +128,13 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "/"  # Serve static files from root
+STATIC_URL = "/static/"  # Keep the standard /static/ prefix
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
-    BASE_DIR / "static" / "dist",  # Only include the dist directory
+    BASE_DIR / "static",
 ]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-WHITENOISE_INDEX_FILE = True  # Permite servir index.html
+STATICFILES_STORAGE = (
+    "django.contrib.staticfiles.storage.StaticFilesStorage"  # Use default storage first
+)
+WHITENOISE_ROOT = BASE_DIR / "static" / "dist"  # Serve files from dist at root URL
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
