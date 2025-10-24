@@ -60,8 +60,6 @@ WSGI_APPLICATION = "inventory_project.wsgi.application"
 
 
 def _default_database_url() -> str:
-    print("asdf")
-    print(os.getenv("DJANGO_USE_LOCAL_POSTGRES", "1"))
     if os.getenv("DJANGO_USE_LOCAL_POSTGRES", "1") == "1":
         user = os.getenv("POSTGRES_USER", "inventory")
         password = os.getenv("POSTGRES_PASSWORD", "inventory")
