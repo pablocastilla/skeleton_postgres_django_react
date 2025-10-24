@@ -16,7 +16,7 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 
 from django.views.static import serve as static_serve
 import os
@@ -27,21 +27,31 @@ from django.conf import settings
 def serve_from_dist(request, path):
     try:
         print(
-            f"Serving file: {path} from {os.path.join(settings.BASE_DIR, 'src', 'static', 'dist')}"
+            f"Serving file: {path} from {os.path.join(settings.BASE_DIR, 'static', 'dist')}"
         )
         return static_serve(
             request,
             path=path,
-            document_root=os.path.join(settings.BASE_DIR, "src", "static", "dist"),
+            document_root=os.path.join(settings.BASE_DIR, "static", "dist"),
         )
     except Exception as e:
         print(f"Error serving {path}: {str(e)}")
         raise
 
 
+def serve_frontend_index(request, _path=None):
+    return serve_from_dist(request, "index.html")
+
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("inventory.urls")),
+    path("", serve_frontend_index, name="frontend-index"),
+    re_path(
+        r"^(?!api/|admin/|static/|media/).*$",
+        serve_frontend_index,
+        name="frontend-fallback",
+    ),
 ]
 
 # En producción, WhiteNoise servirá los archivos estáticos incluyendo index.html
